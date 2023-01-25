@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     public Dongle lastDongle;
     public GameObject donglePrefab;
     public Transform dongleGroup;
+    public int maxLevel;
 
     void Awake()
     {
@@ -34,7 +35,8 @@ public class GameManager : MonoBehaviour
         // lastDongle에 동글 넣어주기
         Dongle newDongle = GetDongle();
         lastDongle = newDongle;
-        lastDongle.level = Random.Range(0, 8);
+        lastDongle.gameManager = this;
+        lastDongle.level = Random.Range(0, maxLevel);   // 랜덤값의 최대값을 점점 크게 만들어주기
         lastDongle.gameObject.SetActive(true);  // 프리펩을 꺼놓은 상태에서 설정을 마친 뒤 그 때 활성화
 
         // 코루틴을 실행하는 방법
