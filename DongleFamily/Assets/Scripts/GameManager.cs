@@ -6,7 +6,9 @@ public class GameManager : MonoBehaviour
 {
     public Dongle lastDongle;
     public GameObject donglePrefab;
+    public GameObject effectPrefab;
     public Transform dongleGroup;
+    public Transform effectGroup;
     public int maxLevel;
 
     void Awake()
@@ -22,17 +24,25 @@ public class GameManager : MonoBehaviour
 
     Dongle GetDongle()
     {
-        // Instantiate함수에서 dongleGroup의 자식으로 생성하도록
-        GameObject instant = Instantiate(donglePrefab, dongleGroup);
+        // 이펙트 생성
+        GameObject instantEffectObj = Instantiate(effectPrefab, effectGroup);
         // return을 Dongle로 하기 위해 GetComponent를 해줌
-        Dongle instantDongle = instant.GetComponent<Dongle>();
+        ParticleSystem instantEffect = instantEffectObj.GetComponent<ParticleSystem>();
+
+        // 동글 생성
+        // Instantiate함수에서 dongleGroup의 자식으로 생성하도록
+        GameObject instantDongleObj = Instantiate(donglePrefab, dongleGroup);
+        // return을 Dongle로 하기 위해 GetComponent를 해줌
+        Dongle instantDongle = instantDongleObj.GetComponent<Dongle>();
+        // 동글 스크립트의 effect를 넣어주기 (초기화)
+        instantDongle.effect = instantEffect;
 
         return instantDongle;
     }
 
     void NextDongle()
     {
-        // lastDongle에 동글 넣어주기
+        // 다음 동글에 동글 설정 넣어주기
         Dongle newDongle = GetDongle();
         lastDongle = newDongle;
         lastDongle.gameManager = this;

@@ -5,6 +5,7 @@ using UnityEngine;
 public class Dongle : MonoBehaviour
 {
     public GameManager gameManager;
+    public ParticleSystem effect;
     public int level;
     public bool isDrag;
     public bool isMerge;    // 이미 합쳐지고 있는 중인지 판단해주는 변수
@@ -119,6 +120,7 @@ public class Dongle : MonoBehaviour
             yield return null;
         }
 
+
         // 20프레임을 다 돌렸다면 합쳐지는 것을 종료하고 게임 오브젝트를 비활성화
         isMerge = false;
         gameObject.SetActive(false);
@@ -141,6 +143,7 @@ public class Dongle : MonoBehaviour
         // 겉으로 보이는 동글 프리펩 레벨 업(애니메이션을 통해)
         yield return new WaitForSeconds(0.2f);
         anim.SetInteger("Level", level + 1);
+        EffectPlay();   // 애니메이션이 실행되는 동시에 이펙트 생성
 
         // 실제 게임 속 동글의 레벨 업 (레벨업을 하자마자 다른 레벨과 닿았을 때, 시간 차를 두기 위해)
         yield return new WaitForSeconds(0.3f);
@@ -152,5 +155,13 @@ public class Dongle : MonoBehaviour
 
         // 합쳐지기 종료
         isMerge = false;
+
+    }
+
+    void EffectPlay()
+    {
+        effect.transform.position = transform.position;
+        effect.transform.localScale = transform.localScale; // 동글의 스케일을 다르게 만들어주었기 때문에 이펙트의 스케일도 바로 다르게 만들 수 있음
+        effect.Play();
     }
 }
