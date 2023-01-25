@@ -10,15 +10,19 @@ public class Dongle : MonoBehaviour
     public bool isDrag;
     public bool isMerge;    // 이미 합쳐지고 있는 중인지 판단해주는 변수
 
-    Rigidbody2D rigid;
+    public Rigidbody2D rigid;
     CircleCollider2D circleCollider;
     Animator anim;
+    SpriteRenderer spriteRenderer;
+
+    float deadTime;     // 해당 시간(deadTime)동안 선에 걸쳐있다면 게임 오버
 
     void Awake()
     {
         rigid = GetComponent<Rigidbody2D>();
         circleCollider = GetComponent<CircleCollider2D>();
         anim = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     // 오브젝트가 생성될 때(활성화 될 때)
@@ -104,6 +108,10 @@ public class Dongle : MonoBehaviour
         rigid.simulated = false;
         circleCollider.enabled = false;
 
+        // 레벨업 때 뿐만 아니라 게임 오버할 때, Hide가 호출되면 Effect 효과 넣어주기
+        if (targetPos == Vector3.up * 100)
+            EffectPlay();
+
         // 상대방은 내 쪽을 향해서 없어지도록
         StartCoroutine(HideRoutine(targetPos));
     }
@@ -114,12 +122,21 @@ public class Dongle : MonoBehaviour
         int frameCount = 0;
         while (frameCount < 20)
         {
-            transform.position = Vector3.Lerp(transform.position, targetPos, 0.5f);
+            // targetPos의 인자값에 따라 행하는 함수를 다르게 하기
+            // 1. 두 동글이 합쳐지는 것에 따른 Hide함수 실행
+            if (targetPos != Vector3.up * 100)
+                transform.position = Vector3.Lerp(transform.position, targetPos, 0.5f);
+            // 2. 게임 오버에 따른 Hide함수 실행
+            else if (targetPos == Vector3.up * 100)
+                transform.localScale = Vector3.Lerp(transform.localScale, Vector3.zero, 0.2f);  // scale에도 Lerp함수 적용 가능
+
             frameCount++;
             // yield return을 통해 다음 프레임으로 넘겨주기 -> 원하는 움직임대로 구현하기 위해 while문 안에 넣어줌
             yield return null;
         }
 
+        // 2의 제곱수만큼 레벨 업
+        gameManager.score += (int)Mathf.Pow(2, level);
 
         // 20프레임을 다 돌렸다면 합쳐지는 것을 종료하고 게임 오브젝트를 비활성화
         isMerge = false;
@@ -155,6 +172,30 @@ public class Dongle : MonoBehaviour
 
         // 합쳐지기 종료
         isMerge = false;
+
+    }
+
+    void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Finish")
+        {
+            deadTime += Time.deltaTime;
+            if (deadTime > 2)       // 2초 이상 동글이 걸쳐있다면 동글의 색상 변경
+                spriteRenderer.color = new Color(0.9f, 0.2f, 0.2f);
+            if (deadTime > 5)       // 5초 이상 동글이 걸쳐있다면 게임 오버
+                gameManager.GameOver();
+        }
+        
+    }
+
+    // 라인에 걸쳤으나 게임 오버 전에 탈출한 경우
+    void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Finish")
+        {
+            deadTime = 0;
+            spriteRenderer.color = Color.white;
+        }
 
     }
 

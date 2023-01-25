@@ -9,7 +9,10 @@ public class GameManager : MonoBehaviour
     public GameObject effectPrefab;
     public Transform dongleGroup;
     public Transform effectGroup;
+
+    public int score;
     public int maxLevel;
+    public bool isOver;
 
     void Awake()
     {
@@ -42,6 +45,9 @@ public class GameManager : MonoBehaviour
 
     void NextDongle()
     {
+        if (isOver)
+            return;
+
         // 다음 동글에 동글 설정 넣어주기
         Dongle newDongle = GetDongle();
         lastDongle = newDongle;
@@ -85,5 +91,36 @@ public class GameManager : MonoBehaviour
         lastDongle.Drop();
         // 동글을 놓았을 경우 lastDongle을 null로 갱신
         lastDongle = null;
+    }
+
+    public void GameOver()
+    {
+        if (isOver)
+            return;
+
+        isOver = true;
+
+        StartCoroutine("GameOverRoutine");
+    }
+
+    IEnumerator GameOverRoutine()
+    {
+        // 장면 안에 활성화된 동글 가져오기
+        // FindObjectsOfType<T> : 화면상의 T타입을 가진 오브젝트를 가져오는 함수(VirticalShooting에서도 다룸)
+        // >> GameObject 안에 있는 함수이지만 GameObject는 생략 가능
+        Dongle[] dongles = FindObjectsOfType<Dongle>();
+
+        // 지우기 전 모든 동글의 물리 효과 무효화
+        // 한번에 실행하기 때문에 yield는 없어도 됨
+        for (int i = 0; i < dongles.Length; i++)
+            dongles[i].rigid.simulated = false;
+
+        // 동글을 하나씩 접근해서 지우기
+        for (int i = 0; i < dongles.Length; i++)
+        {
+            // 기존 함수는 다른 동글의 위치로 이동하는 형식이지만 현재는 위치와 관계없이 그냥 숨기는 역할만 하고싶기 때문에 인자값에 화면 바깥에 있는 위치값을 넣어줌
+            dongles[i].Hide(Vector3.up * 100);
+            yield return new WaitForSeconds(0.1f);
+        }
     }
 }
