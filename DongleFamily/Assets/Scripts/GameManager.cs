@@ -1,9 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("[ Core ]")]
+    // 핵심 변수
+    public bool isOver;
+    public int score;
+    public int maxLevel;
+
+    [Header("[ Object Pooling ]")]
     // 동글 관련 변수
     public GameObject donglePrefab;
     public Transform dongleGroup;
@@ -17,16 +26,27 @@ public class GameManager : MonoBehaviour
     public int poolSize;
     public int poolCursor;
     public Dongle lastDongle;
+
+    [Header("[ Audio ]")]
     // BGM 관련 함수
     public AudioSource bgmPlayer;
     public AudioSource[] sfxPlayer;
     public AudioClip[] sfxClip;
-    public enum SFX { LevelUp, Next, Attach, Button, Over };
+    public enum Sfx { LevelUp, Next, Attach, Button, Over };
     int sfxCursor;
 
-    public int score;
-    public int maxLevel;
-    public bool isOver;
+    [Header("[ UI ]")]
+    public GameObject startGroup;
+    public GameObject endGroup;
+    public TMP_Text scoreText;
+    public TMP_Text maxScoreText;
+    public TMP_Text subScoreText;
+
+    [Header("[ ETC ]")]
+    public GameObject line;
+    public GameObject bottom;
+
+
 
     void Awake()
     {
@@ -39,12 +59,28 @@ public class GameManager : MonoBehaviour
         {
             MakeDongle();
         }
+
+        // 최고점수가 없을 경우 0을 넣어줌
+        if (!PlayerPrefs.HasKey("MaxScore"))
+            PlayerPrefs.SetInt("MaxScore", 0);
+        maxScoreText.text = "Max " +  PlayerPrefs.GetInt("MaxScore").ToString("D5");
     }
 
-    void Start()
+    public void GameStart()
     {
+        // 오브젝트 활성화
+        line.SetActive(true);
+        bottom.SetActive(true);
+        scoreText.gameObject.SetActive(true);
+        maxScoreText.gameObject.SetActive(true);
+        startGroup.SetActive(false);
+
+        // 사운드 플레이
         bgmPlayer.Play();
-        NextDongle();
+        SFXPlay(Sfx.Button);
+
+        // 게임 시작
+        Invoke("NextDongle",1.5f);
     }
 
     Dongle MakeDongle()
@@ -93,7 +129,7 @@ public class GameManager : MonoBehaviour
         lastDongle.level = Random.Range(0, maxLevel);   // 랜덤값의 최대값을 점점 크게 만들어주기
         lastDongle.gameObject.SetActive(true);          // 프리펩을 꺼놓은 상태에서 설정을 마친 뒤 그 때 활성화
 
-        SFXPlay(SFX.Next); // Next 효과음 재생
+        SFXPlay(Sfx.Next); // Next 효과음 재생
         // 코루틴을 실행하는 방법
         StartCoroutine("WaitNext");
     }
@@ -163,26 +199,48 @@ public class GameManager : MonoBehaviour
         }
 
         yield return new WaitForSeconds(1f);
-        SFXPlay(SFX.Over);  // 1초 뒤에 Over 효과음 재생
+        // 최고점수 갱신
+        int maxScore = Mathf.Max(score, PlayerPrefs.GetInt("MaxScore"));
+        PlayerPrefs.SetInt("MaxScore", maxScore);
+
+        // 게임오버 UI 표시
+        subScoreText.text = "점수 : " + score.ToString();
+        endGroup.SetActive(true);
+
+        bgmPlayer.Stop();   // 게임오버 시 BGM 멈춤
+        SFXPlay(Sfx.Over);  // Over 효과음 재생
     }
 
-    public void SFXPlay(SFX type)
+    // 재시작 버튼을 누를 경우
+    public void Reset()
+    {
+        SFXPlay(Sfx.Button);
+        StartCoroutine("ResetCoroutine");
+    }
+
+    IEnumerator ResetCoroutine()
+    {
+        yield return new WaitForSeconds(1f);
+        SceneManager.LoadScene(0);
+    }
+
+    public void SFXPlay(Sfx type)
     {
         switch (type)
         {
-            case SFX.LevelUp:
+            case Sfx.LevelUp:
                 sfxPlayer[sfxCursor].clip = sfxClip[Random.Range(0, 3)];
                 break;
-            case SFX.Next:
+            case Sfx.Next:
                 sfxPlayer[sfxCursor].clip = sfxClip[3];
                 break;
-            case SFX.Attach:
+            case Sfx.Attach:
                 sfxPlayer[sfxCursor].clip = sfxClip[4];
                 break;
-            case SFX.Button:
+            case Sfx.Button:
                 sfxPlayer[sfxCursor].clip = sfxClip[5];
                 break;
-            case SFX.Over:
+            case Sfx.Over:
                 sfxPlayer[sfxCursor].clip = sfxClip[6];
                 break;
         }
@@ -190,5 +248,19 @@ public class GameManager : MonoBehaviour
         sfxPlayer[sfxCursor].Play();
         // sfxCursor값은 0, 1, 2만 나오도록
         sfxCursor = (sfxCursor + 1) % sfxPlayer.Length;
+    }
+
+    void Update()
+    {
+        // 모바일에서 Cancel은 뒤로가기 버튼
+        if (Input.GetButtonDown("Cancel"))
+            Application.Quit();
+    }
+
+    // Update 종료 후 실행되는 생명주기 함수
+    void LateUpdate()
+    {
+        // 스코어 UI 업데이트
+        scoreText.text = "Score " + score.ToString("D5");
     }
 }

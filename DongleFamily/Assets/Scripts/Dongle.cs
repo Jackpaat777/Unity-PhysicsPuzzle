@@ -109,7 +109,7 @@ public class Dongle : MonoBehaviour
         // 2초 뒤 실행
         yield return new WaitForSeconds(0.2f);
         isAttach = false;
-        gameManager.SFXPlay(GameManager.SFX.Attach);
+        gameManager.SFXPlay(GameManager.Sfx.Attach);
     }
 
     // 물체가 충돌 중일 때 실행 (Enter과 Exit와 다름)
@@ -179,7 +179,7 @@ public class Dongle : MonoBehaviour
         }
 
         // 2의 제곱수만큼 레벨 업
-        gameManager.score += (int)Mathf.Pow(2, level);
+        gameManager.score += (int)Mathf.Pow(2, level) * 100;
 
         // 20프레임을 다 돌렸다면 합쳐지는 것을 종료하고 게임 오브젝트를 비활성화
         isMerge = false;
@@ -204,7 +204,7 @@ public class Dongle : MonoBehaviour
         yield return new WaitForSeconds(0.2f);
         anim.SetInteger("Level", level + 1);
         EffectPlay();   // 애니메이션이 실행되는 동시에 이펙트 생성
-        gameManager.SFXPlay(GameManager.SFX.LevelUp);   // LevelUp 효과음 재생
+        gameManager.SFXPlay(GameManager.Sfx.LevelUp);   // LevelUp 효과음 재생
 
         // 실제 게임 속 동글의 레벨 업 (레벨업을 하자마자 다른 레벨과 닿았을 때, 시간 차를 두기 위해)
         yield return new WaitForSeconds(0.3f);
