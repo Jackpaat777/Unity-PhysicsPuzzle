@@ -4,11 +4,25 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public Dongle lastDongle;
+    // 동글 관련 변수
     public GameObject donglePrefab;
-    public GameObject effectPrefab;
     public Transform dongleGroup;
+    public List<Dongle> donglePool;
+    // 이펙트 관련 함수
+    public GameObject effectPrefab;
     public Transform effectGroup;
+    public List<ParticleSystem> effectPool;
+    // 오브젝트 풀링 관련 함수
+    [Range(1, 30)]
+    public int poolSize;
+    public int poolCursor;
+    public Dongle lastDongle;
+    // BGM 관련 함수
+    public AudioSource bgmPlayer;
+    public AudioSource[] sfxPlayer;
+    public AudioClip[] sfxClip;
+    public enum SFX { LevelUp, Next, Attach, Button, Over };
+    int sfxCursor;
 
     public int score;
     public int maxLevel;
@@ -18,29 +32,55 @@ public class GameManager : MonoBehaviour
     {
         // 프레임을 60으로 설정
         Application.targetFrameRate = 60;
+
+        donglePool = new List<Dongle>();
+        effectPool = new List<ParticleSystem>();
+        for (int i = 0; i < poolSize; i++)
+        {
+            MakeDongle();
+        }
     }
 
     void Start()
     {
+        bgmPlayer.Play();
         NextDongle();
     }
 
-    Dongle GetDongle()
+    Dongle MakeDongle()
     {
         // 이펙트 생성
         GameObject instantEffectObj = Instantiate(effectPrefab, effectGroup);
+        instantEffectObj.name = "Effect " + effectPool.Count;
         // return을 Dongle로 하기 위해 GetComponent를 해줌
         ParticleSystem instantEffect = instantEffectObj.GetComponent<ParticleSystem>();
+        effectPool.Add(instantEffect);
 
         // 동글 생성
         // Instantiate함수에서 dongleGroup의 자식으로 생성하도록
         GameObject instantDongleObj = Instantiate(donglePrefab, dongleGroup);
+        instantDongleObj.name = "Dongle " + donglePool.Count;
         // return을 Dongle로 하기 위해 GetComponent를 해줌
         Dongle instantDongle = instantDongleObj.GetComponent<Dongle>();
         // 동글 스크립트의 effect를 넣어주기 (초기화)
         instantDongle.effect = instantEffect;
+        instantDongle.gameManager = this;
+        donglePool.Add(instantDongle);
 
         return instantDongle;
+    }
+
+    Dongle GetDongle()
+    {
+        for (int i = 0; i < donglePool.Count; i++)
+        {
+            poolCursor = (poolCursor + 1) % donglePool.Count;   // 동글풀의 크기가 10이라면 0~9까지
+            if (!donglePool[poolCursor].gameObject.activeSelf)
+                return donglePool[poolCursor];
+        }
+
+        // pool이 넘치도록 동글이 생성되었을 경우에는 MakeDongle을 통해 새로 만들어주기
+        return MakeDongle();
     }
 
     void NextDongle()
@@ -49,12 +89,11 @@ public class GameManager : MonoBehaviour
             return;
 
         // 다음 동글에 동글 설정 넣어주기
-        Dongle newDongle = GetDongle();
-        lastDongle = newDongle;
-        lastDongle.gameManager = this;
+        lastDongle = GetDongle();
         lastDongle.level = Random.Range(0, maxLevel);   // 랜덤값의 최대값을 점점 크게 만들어주기
-        lastDongle.gameObject.SetActive(true);  // 프리펩을 꺼놓은 상태에서 설정을 마친 뒤 그 때 활성화
+        lastDongle.gameObject.SetActive(true);          // 프리펩을 꺼놓은 상태에서 설정을 마친 뒤 그 때 활성화
 
+        SFXPlay(SFX.Next); // Next 효과음 재생
         // 코루틴을 실행하는 방법
         StartCoroutine("WaitNext");
     }
@@ -122,5 +161,34 @@ public class GameManager : MonoBehaviour
             dongles[i].Hide(Vector3.up * 100);
             yield return new WaitForSeconds(0.1f);
         }
+
+        yield return new WaitForSeconds(1f);
+        SFXPlay(SFX.Over);  // 1초 뒤에 Over 효과음 재생
+    }
+
+    public void SFXPlay(SFX type)
+    {
+        switch (type)
+        {
+            case SFX.LevelUp:
+                sfxPlayer[sfxCursor].clip = sfxClip[Random.Range(0, 3)];
+                break;
+            case SFX.Next:
+                sfxPlayer[sfxCursor].clip = sfxClip[3];
+                break;
+            case SFX.Attach:
+                sfxPlayer[sfxCursor].clip = sfxClip[4];
+                break;
+            case SFX.Button:
+                sfxPlayer[sfxCursor].clip = sfxClip[5];
+                break;
+            case SFX.Over:
+                sfxPlayer[sfxCursor].clip = sfxClip[6];
+                break;
+        }
+
+        sfxPlayer[sfxCursor].Play();
+        // sfxCursor값은 0, 1, 2만 나오도록
+        sfxCursor = (sfxCursor + 1) % sfxPlayer.Length;
     }
 }

@@ -9,6 +9,7 @@ public class Dongle : MonoBehaviour
     public int level;
     public bool isDrag;
     public bool isMerge;    // 이미 합쳐지고 있는 중인지 판단해주는 변수
+    public bool isAttach;
 
     public Rigidbody2D rigid;
     CircleCollider2D circleCollider;
@@ -29,6 +30,28 @@ public class Dongle : MonoBehaviour
     void OnEnable()
     {
         anim.SetInteger("Level",level);
+    }
+
+    // 오브젝트가 비활성화 될 때 (동글의 값 초기화)
+    void OnDisable()
+    {
+        // 동글 속성 초기화
+        level = 0;
+        isDrag = false;
+        isMerge = false;
+        isAttach = false;
+
+        // 동글 트랜스폼 초기화
+        // 그냥 position이 아닌 이유 : 동글이 모두 그룹안에 들어가 있기 때문에 localPosition으로 지정해줌
+        transform.localPosition = Vector3.zero;
+        transform.localRotation = Quaternion.identity;
+        transform.localScale = Vector3.zero;
+
+        // 동글 물리 초기화
+        rigid.simulated = false;
+        rigid.velocity = Vector2.zero;
+        rigid.angularVelocity = 0;
+        circleCollider.enabled = true;
     }
 
     void Update()
@@ -67,6 +90,26 @@ public class Dongle : MonoBehaviour
     {
         isDrag = false;
         rigid.simulated = true;
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        // 충돌 시 바로 효과음을 호출하면 소리가 너무 많아지므로 텀을 두어 효과음 발생
+        StartCoroutine("AttackRoutine");
+    }
+
+    IEnumerator AttackRoutine()
+    {
+        // 코루틴에서 바로 탈출하기 위해선 return이 아닌 yield break
+        if (isAttach)
+            yield break;
+
+        isAttach = true;
+
+        // 2초 뒤 실행
+        yield return new WaitForSeconds(0.2f);
+        isAttach = false;
+        gameManager.SFXPlay(GameManager.SFX.Attach);
     }
 
     // 물체가 충돌 중일 때 실행 (Enter과 Exit와 다름)
@@ -161,6 +204,7 @@ public class Dongle : MonoBehaviour
         yield return new WaitForSeconds(0.2f);
         anim.SetInteger("Level", level + 1);
         EffectPlay();   // 애니메이션이 실행되는 동시에 이펙트 생성
+        gameManager.SFXPlay(GameManager.SFX.LevelUp);   // LevelUp 효과음 재생
 
         // 실제 게임 속 동글의 레벨 업 (레벨업을 하자마자 다른 레벨과 닿았을 때, 시간 차를 두기 위해)
         yield return new WaitForSeconds(0.3f);
