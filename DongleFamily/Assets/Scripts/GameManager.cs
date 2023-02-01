@@ -6,13 +6,13 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
-    [Header("[ Core ]")]
+    [Header("--------------[ Core ]")]
     // 핵심 변수
     public bool isOver;
     public int score;
     public int maxLevel;
 
-    [Header("[ Object Pooling ]")]
+    [Header("--------------[ Object Pooling ]")]
     // 동글 관련 변수
     public GameObject donglePrefab;
     public Transform dongleGroup;
@@ -27,7 +27,7 @@ public class GameManager : MonoBehaviour
     public int poolCursor;
     public Dongle lastDongle;
 
-    [Header("[ Audio ]")]
+    [Header("--------------[ Audio ]")]
     // BGM 관련 함수
     public AudioSource bgmPlayer;
     public AudioSource[] sfxPlayer;
@@ -35,14 +35,14 @@ public class GameManager : MonoBehaviour
     public enum Sfx { LevelUp, Next, Attach, Button, Over };
     int sfxCursor;
 
-    [Header("[ UI ]")]
+    [Header("--------------[ UI ]")]
     public GameObject startGroup;
     public GameObject endGroup;
     public TMP_Text scoreText;
     public TMP_Text maxScoreText;
     public TMP_Text subScoreText;
 
-    [Header("[ ETC ]")]
+    [Header("--------------[ ETC ]")]
     public GameObject line;
     public GameObject bottom;
 
