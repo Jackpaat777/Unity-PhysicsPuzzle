@@ -64,23 +64,16 @@ public class GameManager : MonoBehaviour
         if (!PlayerPrefs.HasKey("MaxScore"))
             PlayerPrefs.SetInt("MaxScore", 0);
         maxScoreText.text = "Max " +  PlayerPrefs.GetInt("MaxScore").ToString("D5");
+
+        // 게임 시작
+        Invoke("NextDongle", 1.5f);
     }
 
     public void GameStart()
     {
-        // 오브젝트 활성화
-        line.SetActive(true);
-        bottom.SetActive(true);
-        scoreText.gameObject.SetActive(true);
-        maxScoreText.gameObject.SetActive(true);
-        startGroup.SetActive(false);
-
         // 사운드 플레이
-        bgmPlayer.Play();
         SFXPlay(Sfx.Button);
 
-        // 게임 시작
-        Invoke("NextDongle",1.5f);
     }
 
     Dongle MakeDongle()
@@ -221,7 +214,19 @@ public class GameManager : MonoBehaviour
     IEnumerator ResetCoroutine()
     {
         yield return new WaitForSeconds(1f);
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene("InGame");
+    }
+
+    public void MainMenu()
+    {
+        SFXPlay(Sfx.Button);
+        StartCoroutine("MainMenuCoroutine");
+    }
+
+    IEnumerator MainMenuCoroutine()
+    {
+        yield return new WaitForSeconds(1f);
+        SceneManager.LoadScene("MainMenu");
     }
 
     public void SFXPlay(Sfx type)
@@ -248,13 +253,6 @@ public class GameManager : MonoBehaviour
         sfxPlayer[sfxCursor].Play();
         // sfxCursor값은 0, 1, 2만 나오도록
         sfxCursor = (sfxCursor + 1) % sfxPlayer.Length;
-    }
-
-    void Update()
-    {
-        // 모바일에서 Cancel은 뒤로가기 버튼
-        if (Input.GetButtonDown("Cancel"))
-            Application.Quit();
     }
 
     // Update 종료 후 실행되는 생명주기 함수

@@ -129,15 +129,15 @@ public class Dongle : MonoBehaviour
                 float otY = other.transform.position.y;
 
                 // 1. 내가 아래에 있을 때
-                // 2. 동일한 높이 일 때, 내가 오른쪽에 있을 때
-                if (myY < otY || (myY == otY && myX > otX))
+                // 2. 화면의 왼쪽에서 부딫힌 경우 내가 더 왼쪽에 있으면 내쪽으로 Hide
+                // 3. 화면의 오른쪽에서 부딫힌 경우 내가 더 오른쪽에 있으면 내쪽으로 Hide
+                if (myY < otY || (myX < 0 && (myY == otY && myX < otX)) || (myX > 0 && (myY == otY && myX > otX)))
                 {
                     // 나는 레벨 업
                     LevelUp();
                     // 상대방은 숨기기
                     other.Hide(transform.position);
                 }
-                // 동글 합치기 로직
             }
         }
     }
