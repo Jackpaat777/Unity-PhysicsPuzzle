@@ -254,6 +254,13 @@ public class GameManager : MonoBehaviour
         // sfxCursor값은 0, 1, 2만 나오도록
         sfxCursor = (sfxCursor + 1) % sfxPlayer.Length;
     }
+    // 스크립트가 없는 버튼에서의 효과음
+    public void SFXButton()
+    {
+        sfxPlayer[sfxCursor].clip = sfxClip[5];
+        sfxPlayer[sfxCursor].Play();
+        sfxCursor = (sfxCursor + 1) % sfxPlayer.Length;
+    }
 
     // Update 종료 후 실행되는 생명주기 함수
     void LateUpdate()
