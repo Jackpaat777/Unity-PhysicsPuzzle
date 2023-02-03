@@ -799,7 +799,6 @@ MonoBehaviour:
   sfxPlayer: {fileID: 1078762338}
   buttonClip: {fileID: 8300000, guid: f6fa03999a0597a4fa8cdf6619791c13, type: 3}
   levelClip: {fileID: 8300000, guid: 060849e23d9d5524c8d02a07b7907caf, type: 3}
-  attackClip: {fileID: 8300000, guid: f07ead962d4b7e847bb7ba9976870ce9, type: 3}
 --- !u!4 &523928950
 Transform:
   m_ObjectHideFlags: 0

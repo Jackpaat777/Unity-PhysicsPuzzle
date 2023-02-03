@@ -16,24 +16,19 @@ public class MainManager : MonoBehaviour
     public AudioSource sfxPlayer;
     public AudioClip buttonClip;
     public AudioClip levelClip;
-    public AudioClip attackClip;
 
     void Awake()
     {
-        StartCoroutine("StartSFXRoutine");
-    }
+        // 오디오 믹서의 현재 소리값 반환
+        float valueBGM, valueSFX;
+        bool resultBGM = audioMixer.GetFloat("BGM", out valueBGM);
+        bool resultSFX = audioMixer.GetFloat("SFX", out valueSFX);
 
-    IEnumerator StartSFXRoutine()
-    {
-        sfxPlayer.clip = attackClip;
-        yield return new WaitForSeconds(1.3f);
-        sfxPlayer.Play();
-        yield return new WaitForSeconds(0.2f);
-        sfxPlayer.Play();
-        yield return new WaitForSeconds(0.2f);
-        sfxPlayer.Play();
-        yield return new WaitForSeconds(0.2f);
-        sfxPlayer.Play();
+        // slider의 위치 수정
+        if (resultBGM)
+            sliderBGM.value = valueBGM;
+        if (resultSFX)
+            sliderSFX.value = valueSFX;
     }
 
     // BGM, SFX 슬라이더
